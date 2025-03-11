@@ -1,0 +1,95 @@
+:root {
+    --bluish-color: rgb(23,46,81);
+    --yelloish-color:rgb(171, 171, 8);
+}
+
+body {
+    background-color: var(--bluish-color);
+    color: var(--yelloish-color);
+    font-family: Verdana, Geneva, Tahoma, sans-serif;
+    line-height: 1.8rem;
+}
+
+main {
+    display: flex;
+    justify-content: center;
+}
+
+section {
+    display: grid;
+    grid-template-columns: 100%;
+    height: 100vh;
+    max-width: 768px;
+}
+
+h1 {
+    text-align: center;
+}
+
+table,th,td,tr {
+    border: 2px solid;
+    border-collapse: collapse;
+    text-align: center;
+    padding: 0 1rem;
+}
+
+table,div {
+    justify-self: center;
+    width: 80%;
+}
+
+div {
+    margin: 1rem 0 0 0;
+    display: flex;
+    flex-direction: column;
+}
+
+select,button {
+    margin: 1rem auto 0 auto;
+    height: max-content;
+    width: max-content;
+    font-weight: bolder;
+    font-size: 1rem;
+    padding: .5rem 1rem;
+    border: none;
+}
+
+select:hover,button:hover {
+    cursor: pointer;
+}
+
+
+select:active,button:active {
+    background-color: var(--yelloish-color);
+    color: var(--bluish-color);
+}
+/*
+dialog {
+ backdrop-filter: var(--bluish-color);   
+} */
+
+form {
+    width: 20rem;
+}
+
+input {
+    height: 2rem;
+    width: 100%;
+    font-size: 1rem;
+}
+
+footer {
+    grid-row: 4/5;
+    align-self: end;
+    hr {
+        border: 1.5px solid var(--yelloish-color);
+    }
+    h3 {
+        text-align: center;
+    }
+}
+
+html {
+
+}
+
