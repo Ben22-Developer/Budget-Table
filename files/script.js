@@ -36,7 +36,7 @@ class activity {
     }
 }
 
-const all_entries = [];
+const all_entries = JSON.parse(localStorage.getItem('budgetData')) || [];
 
 const makeActivityLogic = (() => {
 
@@ -44,32 +44,16 @@ const makeActivityLogic = (() => {
     //create functions
 
     function createActivity ({name,type,date}) {
-        
-        //name = upperCase(name);
 
-        const newObj = new activity (name,type,date);
+        const newActivity = new activity (name,type,date);
 
-        if (!newObj.name) {
+        if (!newActivity.name) {
             alert (`Can't add this object, please insert valid characters.`);
             return false;
         }
 
-        all_entries.push(newObj);
-
-        //this return will test while manipulating DOM
-        return `Lastly inserted: ${all_entries[all_entries.length - 1].describe}`;
-    }
-
-    //this function can be deleted
-    function takeInput (name,type,date) {
-        
-        const newObj = {
-            name:name,type:type,date:date
-        }
-        const isValid = createActivity(newObj);
-        if (isValid) {
-            return `Lastly inserted: ${all_entries[all_entries.length - 1].describe}`;
-        }
+        all_entries.push(newActivity);
+        domManipulation.createActivity(newActivity);
     }
 
 //--------------------
@@ -79,38 +63,21 @@ const makeActivityLogic = (() => {
         
         index-= 1;
 
-//!!!!!!! ---> //when using DOM remember to pass this specific item to the form, u'll receive only index as arg and 
-                /* get from the form the {name,type,date} keep it in an object then perform below tasks*/
         
         const oldName = all_entries[index].name;
         all_entries[index].name = name;
 
         if (!all_entries[index].name) {
             all_entries[index].name = oldName;
-            return false;
+            alert (`Can't update this activity, please insert valid characters for activity name.`);
+            return;
         }
 
         all_entries[index].name = name;
         all_entries[index].type = type;
         all_entries[index].date = date;
 
-        return index;
-    }
-
-    //this function can be deleted
-    function takeInputToEdit (index,name,type,date) {
-        
-        const newObj = {
-            name:name,type:type,date:date
-        }
-        const indexEdited = editActivity(index,newObj);
-
-        if (typeof indexEdited === 'boolean') {
-            alert (`Can't add this object, please insert valid characters.`);
-        }
-        else {
-            return `Edited: ${all_entries[indexEdited].describe}`;
-        }
+        domManipulation.updateDOMAfterEdit(index,all_entries[index]);
     }
 
 //-----------------------
@@ -124,13 +91,11 @@ const makeActivityLogic = (() => {
             all_entries[i] = all_entries[i + 1];
         }
         all_entries.length -= 1;
-
         return `Deleted: ${deleted.describe}`
     }
 
 //----------------------
     //functions to sort
-
     //for activity name
     function insertionSort () {
         
@@ -143,23 +108,20 @@ const makeActivityLogic = (() => {
             }
             all_entries[j + 1] = temp;
         }
-        return all_entries;
+        domManipulation.remakingDOMAfterSortOrRetrival();
     }
 
 
     //for activity date
     function quickSortCaller () {
-
         quickSort (0,all_entries.length - 1, all_entries);
-        return all_entries;
+        domManipulation.remakingDOMAfterSortOrRetrival();
     }
 
     function quickSort (start,end,all_entries) {
 
         if (start < end) {
-            console.log(start,end);
             const toCut = conquer (start,end,all_entries);
-            console.log(toCut);
             quickSort (0,toCut - 1, all_entries);
             quickSort (toCut + 1, end, all_entries);
         }
@@ -196,34 +158,184 @@ const makeActivityLogic = (() => {
         return end;
     }
 
-    return {createActivity,takeInput,editActivity,takeInputToEdit,deleteActivity,insertionSort,quickSortCaller};
+    return {createActivity,editActivity,deleteActivity,insertionSort,quickSortCaller};
 })()
-
-
-
-//html date format 2025-03-25
 
 //DOM Manipulation
 
 const domManipulation = (() => {
+    let activityId = 1;
+    let currentManipulatingActivity;
+
+    function storage () {
+        const stringifiedArray = JSON.stringify(all_entries);
+        localStorage.setItem('budgetData',stringifiedArray);
+    }
+
+    function remakingDOMAfterSortOrRetrival () {
+
+        if (activityId > 1) {
+            document.querySelectorAll('.anActivity').forEach(tr => {
+                tr.remove();
+            })
+        }
+        activityId = 1;
+        for (let i = 0; i < all_entries.length; i++) {
+            createActivity(all_entries[i]);
+        }
+    }
+
+    function resetForm () {
+        document.getElementById('nameInput').value = '';
+        document.getElementById('typeInput').value = '';
+        document.getElementById('dateInput').value = '';
+    }
     
+    function remakeDate (date) {
+
+        date = date.split('-');
+        date[3] = date[0];
+        date[0] = date[2];
+        date.splice(2,1);
+        date = date.join('/');
+        return date;
+    }
+
+    function createActivity (newActivity) {
+
+        let tableRow = document.createElement('tr');
+        tableRow.innerHTML = activityHTML(newActivity);
+        tableRow.id = activityId;
+        tableRow.classList.add('anActivity');
+        document.querySelector('table').append(tableRow);
+        tableRow.children[3].children[0].addEventListener('change',updateOrDeleteActivity);
+        
+        activityId += 1;
+
+        storage();
+    }
     
+    function activityHTML (newActivity) {
+        return ` <td>${newActivity.name}</td>
+                 <td>${newActivity.type}</td>   
+                 <td>${remakeDate(newActivity.date)}</td> 
+                 <td>
+                    <select name="selection" id="select">
+                        <option value="none">Manipulate</option>
+                        <option value="Edit">Edit</option>
+                        <option value="Delete">Delete</option>
+                    </select>
+                 </td> 
+                 `
+    }
+
+    function updateOrDeleteActivity (e) {
+
+        currentManipulatingActivity = e.target.parentElement.parentElement;
+        switch (e.target.value) {
+            case 'Edit':
+                editActivity(currentManipulatingActivity.id);
+            break;
+            case 'Delete':
+                deleteActivity();
+            break;
+        }
+
+        e.target.innerHTML = `<option value="none">Manipulate</option>
+                                            <option value="Edit">Edit</option>
+                                            <option value="Delete">Delete</option>`
+    }
+
+    function editActivity (index) {
+        document.getElementById('nameInput').value = all_entries[index - 1].name;
+        document.getElementById('typeInput').value = all_entries[index - 1].type;
+        document.getElementById('dateInput').value = all_entries[index - 1].date;
+        document.querySelector('dialog').showModal();
+        document.querySelector('form').lastElementChild.children[0].value = `${index}`;
+    }
     
+    function updateDOMAfterEdit (index,editedActivity) {
+
+        currentManipulatingActivity.children[0].innerText = editedActivity.name;
+        currentManipulatingActivity.children[1].innerText  = editedActivity.type;
+        currentManipulatingActivity.children[2].innerText  = remakeDate(editedActivity.date);
+        storage();
+    }
+
+    function deleteActivity () {
+
+        const popOut = document.createElement('dialog');
+        popOut.innerHTML = `<h3>Are you sure you want to delete ${currentManipulatingActivity.children[0].innerText} activity?</h3>
+                            <button class="popOutBtnsToDelete" value="Yes">Yes</button>
+                            <button class="popOutBtnsToDelete" value="No">No</button>`;
+
+        document.querySelector('section').append(popOut);
+        popOut.showModal();
+        document.querySelectorAll('.popOutBtnsToDelete').forEach(deleteBtn => {
+            deleteBtn.addEventListener('click',toConfirmDeleteOrNot);
+        })
+    }
+
+    function toConfirmDeleteOrNot (e) {
+        
+        switch(e.target.value) {
+            case 'Yes':
+                makeActivityLogic.deleteActivity(parseInt(currentManipulatingActivity.id));
+                let nextSibling = currentManipulatingActivity.nextElementSibling
+                while (nextSibling) {
+                    nextSibling.id = parseInt(nextSibling.id) - 1;
+                    nextSibling = nextSibling.nextElementSibling;
+                }
+                activityId -=1 ;
+                currentManipulatingActivity.remove();
+                storage();
+            break;
+        }
+        e.target.parentElement.remove();
+    }
+
+    return {createActivity,resetForm,updateDOMAfterEdit,remakingDOMAfterSortOrRetrival}
 })()
 
-const addActivityBtn = document.getElementById('addActivity');
-const sortByNameBtn = document.getElementById('sortByName');
-const sortByDateBtn = document.getElementById('sortByDate');
-const form = document.querySelector('form');
-const dialog = document.querySelector('dialog');
-const formCancel = document.getElementById('formCancel');
-const formSubmit = document.getElementById('formSubmit');
 
+//starting up if in the localStorage there's something
+if (all_entries.length) {
+    const retrieving = [...all_entries];
+    all_entries.splice(0);
+    for (let i = 0; i < retrieving.length; i++) {
+        const retrieved = {};
+        retrieved.name = retrieving[i]._name;
+        retrieved.type = retrieving[i].type;
+        retrieved.date = retrieving[i].date;
+        makeActivityLogic.createActivity(retrieved);
+    }
+}
 
-addActivityBtn.addEventListener('click', () => {
-    dialog.showModal();
+document.getElementById('addActivity').addEventListener('click', () => {
+    domManipulation.resetForm();
+    document.querySelector('dialog').showModal();
 })
 
-formCancel.addEventListener('click', () => {
-    dialog.close();
+document.getElementById('formCancel').addEventListener('click', () => {
+    document.querySelector('dialog').close();
+    document.querySelector('form').lastElementChild.children[0].value = 'Submit';
 })
+
+
+document.querySelector('form').addEventListener('submit', () => {
+
+    const newActivity = {};
+    newActivity.name = document.getElementById('nameInput').value;
+    newActivity.type = document.getElementById('typeInput').value;
+    newActivity.date = document.getElementById('dateInput').value;
+    if ( document.querySelector('form').lastElementChild.children[0].value === 'Submit') {
+        makeActivityLogic.createActivity(newActivity);
+    }
+    else {
+        makeActivityLogic.editActivity(parseInt(document.querySelector('form').lastElementChild.children[0].value),newActivity);
+        document.querySelector('form').lastElementChild.children[0].value = 'Submit';
+    }
+})
+
+document.getElementById('sortByName').addEventListener('click',makeActivityLogic.insertionSort);
+document.getElementById('sortByDate').addEventListener('click',makeActivityLogic.quickSortCaller);

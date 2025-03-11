@@ -64,9 +64,19 @@ select:active,button:active {
     color: var(--bluish-color);
 }
 
+dialog::backdrop {
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
 dialog {
-    backdrop-filter: var(--bluish-color);
+    position: relative;
 } 
+
+#formCancel {
+    position: absolute;
+    bottom: 5%;
+    left:35%;
+}
 
 form {
     width: 20rem;
