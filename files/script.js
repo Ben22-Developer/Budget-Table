@@ -202,3 +202,28 @@ const makeActivityLogic = (() => {
 
 
 //html date format 2025-03-25
+
+//DOM Manipulation
+
+const domManipulation = (() => {
+    
+    
+    
+})()
+
+const addActivityBtn = document.getElementById('addActivity');
+const sortByNameBtn = document.getElementById('sortByName');
+const sortByDateBtn = document.getElementById('sortByDate');
+const form = document.querySelector('form');
+const dialog = document.querySelector('dialog');
+const formCancel = document.getElementById('formCancel');
+const formSubmit = document.getElementById('formSubmit');
+
+
+addActivityBtn.addEventListener('click', () => {
+    dialog.showModal();
+})
+
+formCancel.addEventListener('click', () => {
+    dialog.close();
+})
