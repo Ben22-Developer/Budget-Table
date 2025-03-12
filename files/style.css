@@ -2,7 +2,7 @@
     --bluish-color: rgb(23,46,81);
     --yelloish-color:rgb(171, 171, 8);
 }
-
+ 
 body {
     background-color: var(--bluish-color);
     color: var(--yelloish-color);
@@ -103,11 +103,20 @@ footer {
     table,th,td,tr {
         padding: 0 .3rem;
     }
+    dialog {
+        width: 90%; 
+        form {
+            width: 100%;
+        }
+    }
 }
 
 @media (width < 480px) {
     html {
-        font-size: 11px;
+        font-size: 12px;
+    }
+    th {
+        font-size: .87rem;
     }
 }
 
